@@ -31,10 +31,6 @@ models <- c("Scotese1",  #Scotese 2008, earlier version of PALEOMAP
             "Matthews",  
             "Golonka")
 
-models <- c("Scotese2",  #PALEOMAP latest version
-            "Matthews",  
-            "Golonka")
-
 Timeframe <- 10*(1:20)   #from 10 to 200Ma with a timestep of 10My (we don't consider 0 as we initialise our storing dataframe with initial coordianates, corresponding to 0)
 
 

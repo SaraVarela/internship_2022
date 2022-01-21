@@ -12,3 +12,7 @@ Our approach consists in:
   <li> Applying rotation to the resulting spatial data points
   <li> Extracting their coordinates over time
   <li> Comparing them between models
+  
+For the parts 1-5, see *rotating.R* script.
+
+For the part 6, see *data_analysis.R* script. The script first gets rid of the spatial points belonging to the oceanic plates. In the models that only reconstruct continental plates motion, these points may be easily identified, as they haven't been associated with any plate ID (see georeferencing step).

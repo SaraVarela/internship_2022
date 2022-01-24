@@ -11,6 +11,9 @@ models <- c("Scotese1",  #Scotese 2008, earlier version of PALEOMAP
 
 
 
+setwd('C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/extracted_paleocoordinates')
+
+
 #Our first goal is to georeference the coordinates of the grid with the spatial polygons of each rotation model
 #This would enable us to attribute a plateID to each point.
 #In the case of the models that only consider continental plates motion, the points in the oceans wil just be attributed to no plateID
@@ -34,8 +37,9 @@ proj4string(xy.df)<- CRS("+proj=longlat +datum=WGS84") #assign coord system to t
         #In a first time, as 3 out of the 4 models studied only consider continental plates' motion, we'll draw our analysis on the continents only
 
 
-get_oc_pos <- function(i){
-  #returns indexes of the pixels associated with oceans in the terrestrial-only models (i.e plateID = NA)
+get_na_pos <- function(i){
+  #returns indexes of the pixels associated with non attributed plateIDs (plateID = NA)
+  #In the terrestrial-only models, these points are the ocean plates. However, as not all model have the same plate boundaries, there might be discrepancies between the models
   #i is the index of the model in the "model" vector
   indexes <- c()
   
@@ -66,7 +70,9 @@ get_oc_pos <- function(i){
     georef <- over(xy.df, shape)$PLATEID1
     merged <- cbind.data.frame(xy.df, georef)
   }
-
+  
+  write.csv(merged, file = paste0("./georeferenced/", models[i],".csv"))  #get df with the assigned plate IDs
+  
   for(k in 1:nrow(merged)){
     if(is.na(merged$georef[[k]]) == TRUE){  #if the element we are having a look has no plateID attribute, which means that it belongs to the oceans
       indexes <- c(indexes, k)  #it is stored in the index list
@@ -86,20 +92,16 @@ coords_ref <- read.csv('C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/e
         #we'll make sure to erase the same points as for the one we compare it with  
 
 
-
-setwd('C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/extracted_paleocoordinates')
-
-
 assess_diff <- function(mdl1, mdl2){
   #this function assess how different the reconstructions of mdl2 are with respect to mdl1 (mdl1 - mdl2)
   
-  df1 <- read.csv(file = paste0(mdl1, '.csv')) #open the datasets containing the paleocoordinates over time of the corresponding models
-  df2 <- read.csv(file = paste0(mdl2, '.csv'))
+  df1 <- read.csv(file = paste0(mdl1, '.csv'))[,-c(1)] #open the datasets containing the paleocoordinates over time of the corresponding models
+  df2 <- read.csv(file = paste0(mdl2, '.csv'))[,-c(1)] #and erase the first column, residual indexes with no interest
   
   i1 <- which(models == mdl1) #position of the models in "models"
   i2 <- which(models == mdl2)
-  index_oceans1 <- get_oc_pos(i1)  #target the indexes of the data points associated with no plate ID => oceans in the case of the continental models (otherwise, the output list is null)
-  index_oceans2 <- get_oc_pos(i2)
+  index_oceans1 <- get_na_pos(i1)  #target the indexes of the data points associated with no plate ID => oceans in the case of the continental models (otherwise, the output list is null)
+  index_oceans2 <- get_na_pos(i2)
   
   if(length(index_oceans1) < length(index_oceans2)){
     for(i in 1:ncol(df1)){ #no matters the df, they all have the same column numbers
@@ -114,8 +116,17 @@ assess_diff <- function(mdl1, mdl2){
       df2[index_oceans1, i] = NA
     }
   }
+  
+  #time scaling (we go as far as the model that covers the smallest time frame goes)
+  if(ncol(df1) > ncol(df2)){
+    df1 <- df1[,1:ncol(df2)]
+  }
+  else{
+    df2 <- df2[,1:ncol(df1)]
+  }
+  
   difference <- df1-df2
-  difference[,2:3] = coords_ref
+  difference[,1:2] = coords_ref
   return(difference)
 }
 

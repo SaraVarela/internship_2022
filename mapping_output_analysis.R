@@ -1,16 +1,18 @@
 library(raster)
 library(sp)
 library(rgdal)
-library(RColorBrewer)
 
 
 setwd("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/comparison")
 
+models <- c("Scotese1",
+            "Scotese2",
+            "Matthews",  
+            "Golonka")
 
-#I'm sure some libraries returning the alphabet already exist, but at this time of the day, j'ai trop la flemme
 
-alphabet <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
-              "T", "U", "V", "W", "X", "Y", "Z")
+
+####################################### LATITUDE DEVIATION ####################################################
 
 #nb: odds => lons, evens => lats
 
@@ -24,16 +26,15 @@ plot_lat_difference <- function(mdl1, mdl2){
   #be careful with the order, otherwise, the file won't be recognized
   
   filename <- paste0(mdl1, '_', mdl2, 'diff.csv')
-  df <- read.csv(filename)[,-c(1,2)]  #erase the 2 first columns, which are residual indexes with no interest
+  df <- read.csv(filename)[,-c(1)]
   
-  for(k in 2:21){
-    Time <- 2*k   #corresponding even, hence latitude
-    true_time <- (k-1)*10 #for the plot title
-    xyz <- df[, c(1,2,Time)] #select the corresponding latitude deviation
+  for(k in seq(from = 4, to = ncol(df), by = 2)){ #we start with the latitude of the -10My point (4th column)
+    true_time <- (k-2)*5 #for the plot title ( = ((k-2)/2)*10 )
+    xyz <- df[, c(1,2,k)] #select the corresponding latitude deviation
     r <- rasterFromXYZ(xyz, 
                        crs = "+proj=longlat +datum=WGS84")  #write the raster file
     
-    png(paste0("./visualisation/", alphabet[k-1], '_', mdl1,"_v.s_", mdl2, '_', true_time, ".png"))
+    png(paste0("./visualisation/", mdl1,"_vs_", mdl2, "/", mdl1,"_v.s_", mdl2, '_', true_time, ".png"))
     plot(r, 
          col = pal(50),
          main = paste0("Latitude discrepancies hotspots between ", mdl1, " and ", mdl2, " (", true_time ,"Ma)"),
@@ -45,8 +46,69 @@ plot_lat_difference <- function(mdl1, mdl2){
 }
 
 
-#example
 
-plot_lat_difference(mdl1 = "Scotese2", mdl2 = "Matthews")
+#computing it for all the models
 
+i = 1
+models_copy = models
+
+while(i <= length(models)){
+  mdl1 <- models[[i]]
+  for(mdl2 in models_copy){
+    if(mdl1 != mdl2){
+      plot_lat_difference(mdl1, mdl2)
+    }
+  }
+  models_copy = models_copy[-1]  #we get rid of the new first element
+  i = i+1
+}
+
+
+
+
+
+######################################## PLATEIDs ASSIGNEMENT #################################################
+
+setwd("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/extracted_paleocoordinates/georeferenced")
+store <- read.csv('./Scotese1.csv')[,-c(1,4:8)]
+i = 1
+while(i < length(models)){
+  i = i+1
+  store[,i+2] <- read.csv(paste0(models[i], '.csv'))$georef
+}
+
+colnames(store) <- c("lon_0", "lat_0", "Scotese1_ID", "Scotese2_ID", "Matthews_ID", "Golonka_ID")
+
+#Nothing was working, it made me angry, hence I wrote this ugly combination of loops
+#The point is to get rid of any line with at list one "NA" in the plate IDs... to be improved by maybe getting rid of the NAs when all non-terrestrial models agree, plate boundaries otherwise...
+
+to_drop <- c()
+for(index in 1:nrow(store)){
+  for(k in 3:6){
+    if(is.na(store[index,k]) == T){
+      to_drop <- c(to_drop, index)
+    }
+  }
+}
+
+store <- store[-unique(to_drop),]
+
+    # Assess the ID_weight, a metric quantifying the number of different plate IDs a point may have been assigned to
+
+
+store$ID_weight <- 0
+
+for(id in 1:nrow(store)){
+  store$ID_weight[id] <- length(unique(as.numeric(store[id,3:6])))  #the length of the plateID row without duplicates
+}
+
+write.csv(store, file = "data_pts_plate_IDs_according_to_the_four_models.csv")
+
+
+
+    #Building the raster (we choose 2 random models that have been compared and basically select the two first rows of the df of their difference)
+
+r <- rasterFromXYZ(store[,c(1,2,7)],
+                   crs = "+proj=longlat +datum=WGS84")
+plot(r)
 

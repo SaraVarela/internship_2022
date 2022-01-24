@@ -13,7 +13,7 @@ r <- raster(res = 1) #start with a 1x1 raster
 pos <- xyFromCell(object = r, cell = 1:ncell(r))  #extract coordinates as a df
 xy <- data.frame(pos)
 
-xy$Beginning <- 500 #500Ma ago, beginning of rotation
+xy$Beginning <- 544 #500Ma ago, beginning of rotation, max time
 xy$End <- 0
 
 xy.df <- SpatialPointsDataFrame(coords = xy[,1:2], data = xy)
@@ -31,19 +31,25 @@ models <- c("Scotese1",  #Scotese 2008, earlier version of PALEOMAP
             "Matthews",  
             "Golonka")
 
-Timeframe <- 10*(1:20)   #from 10 to 200Ma with a timestep of 10My (we don't consider 0 as we initialise our storing dataframe with initial coordianates, corresponding to 0)
+MaxTime <- c("Scotese1" = 540,
+             "Scotese2" = 540,
+             "Matthews" = 410,
+             "Golonka" = 544)  #the maximum time we want to reach, we basically go as far as the model goes
 
-
-#loop to create the name of the output datasets' columns (lon and lat for any time in Timeframe)
-names <- c()
-for(t in 10*(0:20)){
-  names <- c(names, paste0("lon_", t), paste0("lat_", t))
-}
 
 #extraction loop
 for(mdl in models){
   coords_over_time <- data.frame(lon_init = xy.df$x,
                                  lat_init = xy.df$y)   #in this dataframe, we'll store the evolution of the coordinates of the spatial points over time, given a model
+  maxTime <- MaxTime[[mdl]]
+  Timeframe <- 10*(1:maxTime/10)   #from 10 to the maximal duration covered with a timestep of 10My (we don't consider 0 as we initialise our storing dataframe with initial coordianates, corresponding to 0)
+  
+  #create the name of the output datasets' columns (lon and lat for any time in Timeframe)
+  names <- c()
+  for(t in 10*(0:maxTime/10)){
+    names <- c(names, paste0("lon_", t), paste0("lat_", t))
+  }
+  
   for(t in Timeframe){
     
     dir <- paste0("./rotated_shapefiles_10My_intervals/", mdl, "/meshgrid/reconstructed_", t, ".00Ma.shp")

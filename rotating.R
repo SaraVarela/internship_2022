@@ -19,7 +19,7 @@ xy$End <- 0
 xy.df <- SpatialPointsDataFrame(coords = xy[,1:2], data = xy)
 proj4string(xy.df)<- CRS("+proj=longlat +datum=WGS84") #assign coord system to the SpatialPointsDataFrame
 
-raster::shapefile(xy.df, paste0(getwd(),"/meshgrid.shp"))  #create shapefile from the SpatialPtsDF and save it with the same command
+raster::shapefile(xy.df, paste0(getwd(),"/meshgrid.shp"), overwrite = TRUE)  #create shapefile from the SpatialPtsDF and save it with the same command
 
 
 
@@ -34,24 +34,27 @@ models <- c("Scotese1",  #Scotese 2008, earlier version of PALEOMAP
 MaxTime <- c("Scotese1" = 540,
              "Scotese2" = 540,
              "Matthews" = 410,
-             "Golonka" = 544)  #the maximum time we want to reach, we basically go as far as the model goes
+             "Golonka" = 540)  #the maximum time we want to reach, we basically go as far as the model goes
+                               #rounded to 540 (instead of 544) for Golonka
 
+
+models <- c("Matthews",  
+            "Golonka")
 
 #extraction loop
 for(mdl in models){
   coords_over_time <- data.frame(lon_init = xy.df$x,
                                  lat_init = xy.df$y)   #in this dataframe, we'll store the evolution of the coordinates of the spatial points over time, given a model
   maxTime <- MaxTime[[mdl]]
-  Timeframe <- 10*(1:maxTime/10)   #from 10 to the maximal duration covered with a timestep of 10My (we don't consider 0 as we initialise our storing dataframe with initial coordianates, corresponding to 0)
+  Timeframe <- seq(from = 10, to = maxTime, by = 10)   #from 10 to the maximal duration covered with a timestep of 10My (we don't consider 0 as we initialise our storing dataframe with initial coordianates, corresponding to 0)
   
   #create the name of the output datasets' columns (lon and lat for any time in Timeframe)
   names <- c()
-  for(t in 10*(0:maxTime/10)){
+  for(t in seq(from = 0, to = maxTime, by = 10) ){
     names <- c(names, paste0("lon_", t), paste0("lat_", t))
   }
   
   for(t in Timeframe){
-    
     dir <- paste0("./rotated_shapefiles_10My_intervals/", mdl, "/meshgrid/reconstructed_", t, ".00Ma.shp")
     shape <- shapefile(x = dir) #shapefile of the corresonding model at the corresponding time
     df <- as.data.frame(shape)  #we convert the shapefile into a dataframe, therefore containing the paleocoordinates of the spatial data points

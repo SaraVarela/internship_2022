@@ -1,7 +1,7 @@
 library(raster)
 library(sp)
 library(rgdal)
-library(magick)
+library(maps)
 
 setwd("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/comparison")
 
@@ -70,15 +70,7 @@ while(i <= length(models)){
 }
 
 
-
-#Animation attempt
-
-make.mov <- function(){
-  unlink("plot.mpg")
-  system("convert -delay 0.5 plot*.jpg plot.mpg")
-}
-
-
+### FOR THE SCRIPT TO WRITE THE GIFS, SEE THE PYTHON NOTEBOOK "make_GIFs.ipynb"
 
 
 ######################################## PLATEIDs ASSIGNEMENT #################################################
@@ -118,11 +110,18 @@ for(id in 1:nrow(store)){
 
 write.csv(store, file = "data_pts_plate_IDs_according_to_the_four_models.csv")
 
+#Building the raster (we choose 2 random models that have been compared and basically select the two first rows of the df of their difference)
 
 
-    #Building the raster (we choose 2 random models that have been compared and basically select the two first rows of the df of their difference)
+r <- rasterFromXYZ(store[,c(1,2,7)], crs = "+proj=longlat +datum=WGS84")
+crs(r)
 
-r <- rasterFromXYZ(store[,c(1,2,7)],
-                   crs = "+proj=longlat +datum=WGS84")
+#mollewide
+proj_moll <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0"
+
+
+p = projectRaster(r, crs = proj_eck)
+plot(p)
+
 plot(r, col = c('grey', 'yellow', 'red'))
-
+map(interior = F, add = T)

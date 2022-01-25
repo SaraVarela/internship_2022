@@ -1,7 +1,7 @@
 library(raster)
 library(sp)
 library(rgdal)
-
+library(magick)
 
 setwd("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/comparison")
 
@@ -32,9 +32,15 @@ plot_lat_difference <- function(mdl1, mdl2){
     true_time <- (k-2)*5 #for the plot title ( = ((k-2)/2)*10 )
     xyz <- df[, c(1,2,k)] #select the corresponding latitude deviation
     r <- rasterFromXYZ(xyz, 
-                       crs = "+proj=longlat +datum=WGS84")  #write the raster file
+                       crs = "+proj=longlat +datum=WGS84")  #write the raster file with the UTM projection coord sys
     
-    png(paste0("./visualisation/", mdl1,"_vs_", mdl2, "/", mdl1,"_v.s_", mdl2, '_', true_time, ".png"))
+    if(true_time < 100){  #add a zero in front of true_time in the name of the file so that the program used to compile the plot as a GIF could sort them properely
+      png(paste0("./visualisation/", mdl1,"_vs_", mdl2, "/", mdl1,"_v.s_", mdl2, '_', 0, true_time, ".png"))
+    }
+    else{
+      png(paste0("./visualisation/", mdl1,"_vs_", mdl2, "/", mdl1,"_v.s_", mdl2, '_', true_time, ".png"))
+    }
+    
     plot(r, 
          col = pal(50),
          main = paste0("Latitude discrepancies hotspots between ", mdl1, " and ", mdl2, " (", true_time ,"Ma)"),
@@ -63,6 +69,14 @@ while(i <= length(models)){
   i = i+1
 }
 
+
+
+#Animation attempt
+
+make.mov <- function(){
+  unlink("plot.mpg")
+  system("convert -delay 0.5 plot*.jpg plot.mpg")
+}
 
 
 
@@ -110,5 +124,5 @@ write.csv(store, file = "data_pts_plate_IDs_according_to_the_four_models.csv")
 
 r <- rasterFromXYZ(store[,c(1,2,7)],
                    crs = "+proj=longlat +datum=WGS84")
-plot(r)
+plot(r, col = c('grey', 'yellow', 'red'))
 

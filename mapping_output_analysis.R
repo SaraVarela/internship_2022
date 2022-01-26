@@ -3,6 +3,7 @@ library(sp)
 library(rgdal)
 library(maps)
 
+
 setwd("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/comparison")
 
 models <- c("Scotese1",
@@ -73,6 +74,7 @@ while(i <= length(models)){
 ### FOR THE SCRIPT TO WRITE THE GIFS, SEE THE PYTHON NOTEBOOK "make_GIFs.ipynb"
 
 
+
 ######################################## PLATEIDs ASSIGNEMENT #################################################
 
 setwd("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/extracted_paleocoordinates/georeferenced")
@@ -110,18 +112,19 @@ for(id in 1:nrow(store)){
 
 write.csv(store, file = "data_pts_plate_IDs_according_to_the_four_models.csv")
 
-#Building the raster (we choose 2 random models that have been compared and basically select the two first rows of the df of their difference)
+
+#Building the raster
+
+store <- read.csv("data_pts_plate_IDs_according_to_the_four_models.csv")
+
+r <- rasterFromXYZ(store[,c(2,3,8)], crs = "+proj=longlat +datum=WGS84")
+plot(r)
+
+proj_moll <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0"  #mollweide
+p <- projectRaster(r, crs = proj_moll)
 
 
-r <- rasterFromXYZ(store[,c(1,2,7)], crs = "+proj=longlat +datum=WGS84")
-crs(r)
+plot(p, col = c('grey', 'yellow', 'red'),  axes = FALSE, add = FALSE)
+map(interior = FALSE, add = TRUE, col = "red", fill = TRUE, wrap = TRUE) #for some obscure reasons, the map doesn't want to display...
 
-#mollewide
-proj_moll <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0"
-
-
-p = projectRaster(r, crs = proj_eck)
-plot(p)
-
-plot(r, col = c('grey', 'yellow', 'red'))
-map(interior = F, add = T)
+##TRY USING rnaturalearth

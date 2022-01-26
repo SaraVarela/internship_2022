@@ -103,13 +103,13 @@ assess_diff <- function(mdl1, mdl2){
   index_oceans1 <- get_na_pos(i1)  #target the indexes of the data points associated with no plate ID => oceans in the case of the continental models (otherwise, the output list is null)
   index_oceans2 <- get_na_pos(i2)
   
+  ##STANDARDISATION
   if(length(index_oceans1) < length(index_oceans2)){
     for(i in 1:ncol(df1)){ #no matters the df, they all have the same column numbers
       df1[index_oceans2, i] = NA
       df2[index_oceans2, i] = NA
     }
   }
-  
   else if(length(index_oceans1) > length(index_oceans2)){
     for(i in 1:ncol(df1)){
       df1[index_oceans1, i] = NA
@@ -125,13 +125,15 @@ assess_diff <- function(mdl1, mdl2){
     df2 <- df2[,1:ncol(df1)]
   }
   
+  #latitudinal deviation assessment (without absolute value, we keep the direction of the change)
   difference <- df1-df2
   difference[,1:2] = coords_ref
   return(difference)
 }
 
 
-#running the functions to compare the outputs of each model 2 by 2 (avoiding to compare twice the same models and also not comparing a model with itself)
+#running the functions to compare the outputs of each model 2 by 2 
+#(this loop avoids to compare the same models twice and to compare a model with itself)
 #outputs saved in the "comparison" folder
 
 i = 1

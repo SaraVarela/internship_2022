@@ -7,7 +7,7 @@ Our goal is to assess the impact of using different rotation models in paleobiog
 Our approach consists in:
 <ol>
   <li> Creating a 1x1° meshgrid
-  <li> Opening it in *Gplates*
+  <li> Opening it in Gplates
   <li> Merging it with continental polygons associated with a given model
   <li> Applying rotation to the resulting spatial data points
   <li> Extracting their coordinates over time

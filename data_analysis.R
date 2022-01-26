@@ -4,10 +4,10 @@ library(rgdal)
 
 
 
-models <- c("Scotese1",  #Scotese 2008, earlier version of PALEOMAP
-            "Scotese2",  #PALEOMAP latest version
+models <- c("Scotese2",  #PALEOMAP latest version
             "Matthews",  
-            "Golonka")
+            "Golonka",
+            "Wright")
 
 
 
@@ -18,7 +18,7 @@ setwd('C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/extracted_paleocoo
 #This would enable us to attribute a plateID to each point.
 #In the case of the models that only consider continental plates motion, the points in the oceans wil just be attributed to no plateID
 
-      #BUILD THE GRID AGAIN
+#BUILD THE GRID AGAIN
 
 r <- raster(res = 1) #start with a 1x1 raster
 pos <- xyFromCell(object = r, cell = 1:ncell(r))  #extract coordinates as a df
@@ -31,10 +31,10 @@ xy.df <- SpatialPointsDataFrame(coords = xy[,1:2], data = xy)
 proj4string(xy.df)<- CRS("+proj=longlat +datum=WGS84") #assign coord system to the SpatialPointsDataFrame
 
 
-    #IMPORT MODELS' POLYGONS AS SHAPEFILES AND PROCEED TO THE GEOREFERENCING
+#IMPORT MODELS' POLYGONS AS SHAPEFILES AND PROCEED TO THE GEOREFERENCING
 
-        #Target Oceans
-        #In a first time, as 3 out of the 4 models studied only consider continental plates' motion, we'll draw our analysis on the continents only
+#Target Oceans
+#In a first time, as 3 out of the 4 models studied only consider continental plates' motion, we'll draw our analysis on the continents only
 
 
 get_na_pos <- function(i){
@@ -44,28 +44,28 @@ get_na_pos <- function(i){
   indexes <- c()
   
   if(i == 1){
-    dir <- "C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/Rotation_models/Scotese1/Scotese_2008_PresentDay_ContinentalPolygons.shp"
-    shape <- shapefile(dir)  #we open the corresponding Gplates shapefile
-    georef <- over(xy.df, shape)$PLATEID1 #georeferencing the spatial data points with the Gplates shp
-    merged <- cbind.data.frame(xy.df, georef)  #merging both
+    dir <- "C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/Rotation_models/Scotese2/Scotese PaleoAtlas_v3/PALEOMAP Global Plate Model/PALEOMAP_PlatePolygons/reconstructed_0.00Ma/reconstructed_0.00Ma_polygon.shp"
+    shape <- shapefile(dir) #we open the corresponding Gplates shapefile
+    georef <- over(xy.df, shape)$PLATEID1  #georeferencing the spatial data points with the Gplates shp
+    merged <- cbind.data.frame(xy.df, georef)  #merging both  
   }
   
   else if(i == 2){
-    dir <- "C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/Rotation_models/Scotese2/Scotese PaleoAtlas_v3/PALEOMAP Global Plate Model/PALEOMAP_PlatePolygons/reconstructed_0.00Ma/reconstructed_0.00Ma_polygon.shp"
-    shape <- shapefile(dir)
-    georef <- over(xy.df, shape)$PLATEID1
-    merged <- cbind.data.frame(xy.df, georef)
-  }
-  
-  else if(i == 3){
     dir <- "C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/Rotation_models/Matthews/ContinentalPolygons/Shapefile/Matthews_etal_GPC_2016_ContinentalPolygons.shp"
     shape <- shapefile(dir)
     georef <- over(xy.df, shape)$PLATEID1
     merged <- cbind.data.frame(xy.df, georef)
   }
   
-  else if(i == 4){
+  else if(i == 3){
     dir <- "C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/Rotation_models/Golonka/Golonka_2007_PresentDay_ContinentalPolygons.shp"
+    shape <- shapefile(dir)
+    georef <- over(xy.df, shape)$PLATEID1
+    merged <- cbind.data.frame(xy.df, georef)
+  }
+  
+  else if(i == 4){
+    dir <- "C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/rotated_shapefiles_10My_intervals/Wright/Phanerozoic_EarthByte_Coastlines/reconstructed_0.00Ma.shp"
     shape <- shapefile(dir)
     georef <- over(xy.df, shape)$PLATEID1
     merged <- cbind.data.frame(xy.df, georef)
@@ -87,9 +87,9 @@ coords_ref <- read.csv('C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/e
 
 
 
-      #COMPARISON
-        #in the case of the models that actually cover marine plates, 
-        #we'll make sure to erase the same points as for the one we compare it with  
+#COMPARISON
+#in the case of the models that actually cover marine plates, 
+#we'll make sure to erase the same points as for the one we compare it with  
 
 
 assess_diff <- function(mdl1, mdl2){
@@ -103,13 +103,13 @@ assess_diff <- function(mdl1, mdl2){
   index_oceans1 <- get_na_pos(i1)  #target the indexes of the data points associated with no plate ID => oceans in the case of the continental models (otherwise, the output list is null)
   index_oceans2 <- get_na_pos(i2)
   
-  ##STANDARDISATION
   if(length(index_oceans1) < length(index_oceans2)){
     for(i in 1:ncol(df1)){ #no matters the df, they all have the same column numbers
       df1[index_oceans2, i] = NA
       df2[index_oceans2, i] = NA
     }
   }
+  
   else if(length(index_oceans1) > length(index_oceans2)){
     for(i in 1:ncol(df1)){
       df1[index_oceans1, i] = NA
@@ -125,15 +125,13 @@ assess_diff <- function(mdl1, mdl2){
     df2 <- df2[,1:ncol(df1)]
   }
   
-  #latitudinal deviation assessment (without absolute value, we keep the direction of the change)
   difference <- df1-df2
   difference[,1:2] = coords_ref
   return(difference)
 }
 
 
-#running the functions to compare the outputs of each model 2 by 2 
-#(this loop avoids to compare the same models twice and to compare a model with itself)
+#running the functions to compare the outputs of each model 2 by 2 (avoiding to compare twice the same models and also not comparing a model with itself)
 #outputs saved in the "comparison" folder
 
 i = 1
@@ -143,14 +141,12 @@ while(i < length(models)){
   mdl1 <- models[[i]]
   for(mdl2 in models_copy){
     if(mdl1 != mdl2){
-    difference <- assess_diff(mdl1, mdl2)
-    write.csv(difference, 
-              file = paste0("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/comparison/", mdl1, '_', mdl2, 'diff.csv'))
+      difference <- assess_diff(mdl1, mdl2)
+      write.csv(difference, 
+                file = paste0("C:/Users/lucas/OneDrive/Bureau/Internship_2022/project/comparison/", mdl1, '_', mdl2, 'diff.csv'))
     }
   }
   models_copy = models_copy[-1]  #we get rid of the new first element
   i = i+1
 }
-
-
 

@@ -7,7 +7,7 @@ Our goal is to assess the impact of using different rotation models in paleobiog
 Our approach consists in:
 <ol>
   <li> Creating a 1x1° meshgrid
-  <li> Opening it in *Gplates*
+  <li> Opening it in Gplates
   <li> Merging it with continental polygons associated with a given model
   <li> Applying rotation to the resulting spatial data points
   <li> Extracting their coordinates over time
@@ -16,3 +16,6 @@ Our approach consists in:
 For the parts 1-5, see *rotating.R* script.
 
 For the part 6, see *data_analysis.R* script. The script first gets rid of the spatial points belonging to the oceanic plates. In the models that only reconstruct continental plates motion, these points may be easily identified, as they haven't been associated with any plate ID (see georeferencing step).
+© 2022 GitHub, Inc.
+Terms
+Priv

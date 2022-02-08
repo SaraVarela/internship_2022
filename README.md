@@ -12,6 +12,9 @@ Our approach consists of:
   <li> Applying rotation to the resulting spatial data points
   <li> Extracting their coordinates over time
   <li> Comparing them between models
+</ol>
+
+[workflow](workflow.pdf)
   
 For the parts 1-5, see *rotating.R* script.
 

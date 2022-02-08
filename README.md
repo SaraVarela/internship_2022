@@ -14,7 +14,7 @@ Our approach consists of:
   <li> Comparing them between models
 </ol>
 
-![workflow](workflow.pdf)
+![workflow](https://github.com/Buffan3369/internship_2022/blob/main/Figures/workflow.pdf)
   
 For the parts 1-5, see *rotating.R* script.
 

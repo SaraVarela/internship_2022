@@ -4,7 +4,7 @@ Our goal is to assess the impact of using different rotation models in paleobiog
 
 ## Assessing the differences between paleorotation models
 
-Our approach consists in:
+Our approach consists of:
 <ol>
   <li> Creating a 1x1° meshgrid
   <li> Opening it in Gplates
@@ -12,6 +12,9 @@ Our approach consists in:
   <li> Applying rotation to the resulting spatial data points
   <li> Extracting their coordinates over time
   <li> Comparing them between models
+</ol>
+
+![workflow](workflow.pdf)
   
 For the parts 1-5, see *rotating.R* script.
 

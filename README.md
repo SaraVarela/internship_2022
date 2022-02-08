@@ -4,7 +4,7 @@ Our goal is to assess the impact of using different rotation models in paleobiog
 
 ## Assessing the differences between paleorotation models
 
-Our approach consists in:
+Our approach consists of:
 <ol>
   <li> Creating a 1x1° meshgrid
   <li> Opening it in Gplates
